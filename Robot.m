@@ -26,10 +26,8 @@ classdef Robot < OM_X_arm
         
                % Function to read the current (torque) of the motors
         function torques = readCurrent(self)
-            torques = zeros(1, length(self.motors));
-            for i = 1:length(self.motors)
-                torques(i) = self.motors(i).getCurrent();
-            end
+                c = self.bulkReadWrite(DX_XM430_W350.CURR_LEN, DX_XM430_W350.CURR_CURRENT); 
+                torques = c * 2.69;
         end
 
         % Sends the joints to the desired angles
@@ -91,11 +89,9 @@ classdef Robot < OM_X_arm
 
         % Function to read the current (torque) of the motors
         function torques = readTorques(self)
-            currents = zeros(1, length(self.motors));
-            for i = 1:length(self.motors)
-                currents(i) = self.motors(i).getCurrent();
-            end
-            torques = self.torque(currents); % Convert current to torque
+                c = self.bulkReadWrite(DX_XM430_W350.CURR_LEN, DX_XM430_W350.CURR_CURRENT); 
+                cur = c * 2.69;
+                torques = self.torque(cur);
         end
 
         function const = torque(self, current)
@@ -103,22 +99,14 @@ classdef Robot < OM_X_arm
             const = ((7/4)*c)-0.175;
         end
 
-        % Function to calculate the end-effector torques from joint torques
-        function endEffectorTorques = calculateEndEffectorTorques(self, jointAngles)
-            % Read the current and convert to joint torques
-            jointTorques = self.readTorques();
 
-            % Ensure jointTorques is a column vector
-            jointTorques = jointTorques(:);
+        function F = get_EEForce(self, angles)
+            jac = self.get_jacobian(angles);
+            tor = self.readTorques();
             
-            % Get the Jacobian matrix at the current joint angles
-            J = self.get_jacobian(jointAngles);
-
-            disp(size(J));
-            disp(size(jointTorques));
+            jt = jac';
+            F = tor * jt;
             
-            % Compute the end-effector forces and moments
-            endEffectorTorques = J * jointTorques(:);
         end
 
         % Change the operating mode for all joints:
@@ -211,6 +199,13 @@ classdef Robot < OM_X_arm
             end
             output = deg2rad(output);
             output(2,2:3) = output(2:2,3) - [1.0791 1.511] ;
+        end
+
+         function output = read_joint_curs(self) %function to choose whether to read both, just position or just velocity
+             
+                c = self.bulkReadWrite(DX_XM430_W350.CURR_LEN, DX_XM430_W350.CURR_CURRENT); 
+                output = c * 2.69;
+             
         end
 
         function transformMatrix = dh2mat(self, dhParam) %dhParam is Theta, d, a, Alpha and creates transformation matrix of a consecutive joints

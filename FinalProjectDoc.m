@@ -259,7 +259,7 @@ l_3c = l_3;
 %[m1, m2, m3] = deal(0.5);
 m1 = .082;
 m2= .082;
-m3 = .082;
+m3 = .170;
 g = 9.8;
 
 % robot.moveToSamePos(1, [0,-40,55,0], 1000);
@@ -299,6 +299,8 @@ tor3 = zeros(1, 3);
 
 i = 1; 
 for j = 1:3
+    robot.moveToSamePos(1, jointsAngles(j,:), 1000); %(1000 is the time in miliseconds
+
     th = robot.read_joint_vars(true, false);
     cr = robot.readCurrent();
     t = robot.readTorques();
@@ -334,7 +336,6 @@ for j = 1:3
     DNewtonAns = subs(Dnewton);
     CNewtonAns = subs(Cnewton);
     gravNewtonAns = subs(gravitynewton);
-    robot.moveToSamePos(1, jointsAngles(j,:), 1000); %(1000 is the time in miliseconds
     pause(2);
     gravNewtonAns = subs(gravnew);
     elapsedTime = toc(startTime);
@@ -382,7 +383,7 @@ hold on;
 plot(time, c2, '-o', 'DisplayName', 'Joint 2');
 plot(time, c3, '-o', 'DisplayName', 'Joint 3');
 xlabel('Time (seconds)');
-ylabel('Current');
+ylabel('Current (mA)');
 title('Current at 3 Positions');
 legend;
 grid on;
@@ -396,16 +397,16 @@ hold on;
 plot(time, t2, '-o', 'DisplayName', 'Joint 2');
 plot(time, t3, '-o', 'DisplayName', 'Joint 3');
 xlabel('Time (seconds)');
-ylabel('Torque');
+ylabel('Torque (Nm)');
 title('Torque at 3 Positions');
 legend;
 grid on;
 hold off;
 
 disp("Newton Nums:");
-disp(gravNewtonAns);
+disp([j1, j2, j3]);
 disp("Lagrange Nums");
-disp(gravLagrangeAns);
+disp([j1l, j2l, j3l]);
 disp("Current Nums");
 disp([c1, c2, c3]);
 disp("Torque Nums");
